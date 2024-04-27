@@ -1,3 +1,6 @@
 go 1.20
 
-use ./wait_groups
+use (
+	./rate_limiter
+	./wait_groups
+)
