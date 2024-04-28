@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"time"
 )
@@ -10,6 +11,7 @@ type RateLimiter interface {
 }
 
 type TokenBucket struct {
+	Ctx          context.Context
 	Capacity     uint16
 	RefillRate   time.Duration
 	RefillAmount uint16
@@ -17,8 +19,9 @@ type TokenBucket struct {
 	availableTokens uint16
 }
 
-func NewTokenBucket(capacity uint16, refillRate time.Duration, refillAmount uint16) *TokenBucket {
+func NewTokenBucket(ctx context.Context, capacity uint16, refillRate time.Duration, refillAmount uint16) *TokenBucket {
 	tb := &TokenBucket{
+		Ctx:             ctx,
 		Capacity:        capacity,
 		RefillRate:      refillRate,
 		RefillAmount:    refillAmount,
@@ -36,12 +39,21 @@ func NewTokenBucket(capacity uint16, refillRate time.Duration, refillAmount uint
 	return tb
 }
 
+func (tb *TokenBucket) refillBucket() {
+	if tb.availableTokens+tb.RefillAmount <= tb.Capacity {
+		tb.availableTokens += tb.RefillAmount
+	}
+	time.Sleep(tb.RefillRate)
+}
+
 func (tb *TokenBucket) run() {
 	for {
-		if tb.availableTokens+tb.RefillAmount <= tb.Capacity {
-			tb.availableTokens += tb.RefillAmount
+		select {
+		case <-tb.Ctx.Done():
+			return
+		default:
+			tb.refillBucket()
 		}
-		time.Sleep(tb.RefillRate)
 	}
 }
 

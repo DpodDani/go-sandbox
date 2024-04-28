@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"time"
 )
@@ -8,7 +9,11 @@ import (
 func main() {
 	log.Println("Hello world - from ratelimiter")
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	tb := NewTokenBucket(
+		ctx,                          // context
 		4,                            // capacity
 		time.Duration(time.Second*1), // refill rate
 		2,                            // refill amount

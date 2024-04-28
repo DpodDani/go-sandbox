@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -9,7 +10,11 @@ import (
 )
 
 func TestTokenBucketRefill(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	tb := TokenBucket{
+		Ctx:             ctx,
 		Capacity:        4,
 		RefillRate:      time.Duration(time.Millisecond * 50),
 		RefillAmount:    2,
@@ -31,7 +36,11 @@ func TestTokenBucketRefill(t *testing.T) {
 }
 
 func TestTokenBucketAvailableTokenDecrement(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	tb := TokenBucket{
+		Ctx:             ctx,
 		Capacity:        4,
 		RefillRate:      time.Duration(time.Second * 1),
 		RefillAmount:    2,
